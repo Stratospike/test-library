@@ -54,7 +54,7 @@ private List parseParameters(params, String repoName, String version) {
 
 private AwsCredentials getAwsCredentials(DeploymentLayout layout) {
     switch (layout.getAwsAccount()) {
-        case AwsAccount.NONPROD
+        case AwsAccount.NONPROD:
             return new AwsCredentials("${AWS_ACCESS_KEY_ID}", "${AWS_SECRET_ACCESS_KEY}")
         case AwsAccount.PREPROD:
             return new AwsCredentials("${PREPROD_AWS_ACCESS_KEY_ID}", "${PREPROD_AWS_SECRET_ACCESS_KEY}")
