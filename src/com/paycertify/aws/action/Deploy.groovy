@@ -31,7 +31,7 @@ class Deploy {
     }
 
     private void deployApplication() {
-        println("""
+        echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
                ${environment} \
                ${environment}-${applicationName} \
@@ -46,7 +46,7 @@ class Deploy {
     }
 
     private void deployCron() {
-        println("""
+        echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
                ${environment} \
                ${environment}-${applicationName} \
