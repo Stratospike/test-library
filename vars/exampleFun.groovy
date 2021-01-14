@@ -1,112 +1,60 @@
 import com.paycertify.aws.action.Deploy
 import com.paycertify.aws.model.AwsCredentials
+import com.paycertify.aws.model.DeploymentLayout
 
 def call(params, String appRepoName = null, String appVersion = null) {
-    String appName
+    (applicationName, repoName, version) = parseParameters(params, appRepoName, appVersion)
 
-    if (params instanceof Map) {
-        appName = params.applicationName
+    final DeploymentLayout layout = new DeploymentLayout(scm.branches[0].name)
+    final String environment = layout.getEnvironmentName()
+    final String repoUrl = layout.getDockerRepositoryUrl()
+    final String awsRegion = layout.getAwsRegion()
 
-        if (!appRepoName) {
-            appRepoName = params.ecrRepo
-        }
-        if (!appVersion) {
-            appVersion = params.version
-        }
-    } else {
-        appName = params
-    }
-
-    if (!appRepoName) {
-        appRepoName = appName
-    }
-
-    if (!appName) {
-        throw new IllegalArgumentException("Missing Argument: applicationName")
-    }
-
-    if (!appVersion) {
-        throw new IllegalArgumentException("Missing Argument: version")
-    }
-
-    def environment = getEnvironmentName()
-    def repoUrl = getDockerRepositoryUrl(environment)
-    def awsRegion = getAwsRegion(environment)
-    def shortCommit = appVersion[0..6]
-
-    def awsAccessKey = "${AWS_ACCESS_KEY_ID}"
-    def awsSecretAccessKey = "${AWS_SECRET_ACCESS_KEY}"
-
-    if (environment.equalsIgnoreCase("production")) {
-        awsAccessKey = "${PROD_AWS_ACCESS_KEY_ID}"
-        awsSecretAccessKey = "${PROD_AWS_SECRET_ACCESS_KEY}"
-    }
-
-    def awsCredentials = new AwsCredentials(awsAccessKey, awsSecretAccessKey)
-    def ecrPath = "${repoUrl}/${appRepoName}"
+    final String shortCommit = version[0..6]
+    final String ecrPath = "${repoUrl}/${repoName}:${shortCommit}"
+    final AwsCredentials awsCredentials = getAwsCredentials(environment)
 
     boolean cron = CRON_APP.equalsIgnoreCase("true")
-    if (cron) {
-        echo "Updating cron ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
-    } else {
-        echo "Deploying ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
-    }
 
-    Deploy deploy = new Deploy(this, awsRegion, awsCredentials, environment, appName, ecrPath, cron)
+    Deploy deploy = new Deploy(this, awsRegion, awsCredentials, environment, applicationName, ecrPath, cron)
     deploy.execute()
 }
 
-def getEnvironmentName() {
+private List parseParameters(params, String repoName, String version) {
+    String applicationName
 
-    def branchName = scm.branches[0].name.split("/").last()
-    def environment
+    if (params instanceof Map) {
+        applicationName = params.applicationName
 
-    switch (branchName) {
-        case "master":
-            environment = "production"
-            break
-        case "main":
-            environment = "production"
-            break
-        case "staging":
-            environment = "staging"
-            break
-        default:
-            environment = branchName
-            break
+        if (!repoName) {
+            repoName = params.repoName
+        }
+        if (!version) {
+            version = params.version
+        }
+    } else {
+        applicationName = params
     }
 
-    return environment
+    if (!repoName) {
+        repoName = applicationName
+    }
+
+    if (!applicationName) {
+        throw new IllegalArgumentException("Missing Argument: applicationName")
+    }
+
+    if (!version) {
+        throw new IllegalArgumentException("Missing Argument: version")
+    }
+
+    [applicationName, repoName, version]
 }
 
-def getDockerRepositoryUrl(String environment) {
-
-    def repoUrl
-
-    switch (environment) {
-        case "production":
-            repoUrl = "670631891947.dkr.ecr.us-east-1.amazonaws.com"
-            break
-        default:
-            repoUrl = "670631891947.dkr.ecr.us-east-1.amazonaws.com"
-            break
+private AwsCredentials getAwsCredentials(String environment) {
+    if (environment.equalsIgnoreCase("production")) {
+        return new AwsCredentials("${PROD_AWS_ACCESS_KEY_ID}", "${PROD_AWS_SECRET_ACCESS_KEY}")
+    } else {
+        return new AwsCredentials("${AWS_ACCESS_KEY_ID}", "${AWS_SECRET_ACCESS_KEY}")
     }
-
-    return repoUrl
-}
-
-def getAwsRegion(String environment) {
-
-    def region
-
-    switch (environment) {
-        case "production":
-            region = "us-east-1"
-            break
-        default:
-            region = "us-east-2"
-            break
-    }
-
-    return region
 }

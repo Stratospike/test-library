@@ -34,6 +34,8 @@ class Deploy {
     }
 
     private void deployApplication() {
+        ctx.echo "Deploying ${applicationName} to ${environment} with image ${ecrPath}"
+
         ctx.echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
                ${environment} \
@@ -45,10 +47,11 @@ class Deploy {
                --image ${applicationName} ${ecrPath} \
                --image datadog-agent datadog/agent:latest 
           """)
-
     }
 
     private void deployCron() {
+        ctx.echo "Updating cron ${applicationName} to ${environment} with image ${ecrPath}"
+
         ctx.echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
                ${environment} \
