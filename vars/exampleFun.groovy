@@ -1,5 +1,8 @@
+import groovy.transform.NamedParam
+import groovy.transform.NamedVariant
 
-def call(String name) {
+@NamedVariant
+def call(@NamedParam String name, @NamedParam String value) {
 
-  echo "Hello Dev"
+    echo "Name: ${name},  Value: ${value}"
 }
