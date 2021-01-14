@@ -45,7 +45,8 @@ def call(params, String appRepoName = null, String appVersion = null) {
     def awsCredentials = new AwsCredentials(awsAccessKey, awsSecretAccessKey)
     def ecrPath = "${repoUrl}/${appRepoName}"
 
-    boolean cron = CRON_APP.equalsIgnoreCase("true")
+    String cronApp = CRON_APP
+    boolean cron = cronApp.equalsIgnoreCase("true")
     if (cron) {
         echo "Updating cron ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
     } else {
