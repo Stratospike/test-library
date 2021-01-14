@@ -3,6 +3,7 @@ package com.paycertify.aws.action
 import com.paycertify.aws.model.AwsCredentials
 
 class Deploy {
+    private final ctx;
     private final String awsRegion
     private final AwsCredentials awsCredentials
     private final String environment
@@ -11,9 +12,11 @@ class Deploy {
     private final boolean cron
 
     Deploy(
+            ctx,
             String awsRegion, AwsCredentials awsCredentials,
             String environment, String applicationName,
             String ecrPath, boolean cron) {
+        this.ctx = ctx
         this.awsRegion = awsRegion
         this.awsCredentials = awsCredentials
         this.environment = environment
@@ -31,7 +34,7 @@ class Deploy {
     }
 
     private void deployApplication() {
-        echo("""
+        ctx.echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
                ${environment} \
                ${environment}-${applicationName} \
@@ -46,7 +49,7 @@ class Deploy {
     }
 
     private void deployCron() {
-        echo("""
+        ctx.echo("""
              docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
                ${environment} \
                ${environment}-${applicationName} \
