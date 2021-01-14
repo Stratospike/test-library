@@ -1,4 +1,4 @@
-def call(params, String second) {
+def call(params, String second = null) {
 
     String name = params.name
     String value = params.value
