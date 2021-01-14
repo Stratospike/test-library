@@ -36,7 +36,8 @@ class Deploy {
     private void deployApplication() {
         ctx.echo "Deploying ${applicationName} to ${environment} with image ${ecrPath}"
 
-        ctx.echo("""
+        ctx.echo(
+          """
              docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
                ${environment} \
                ${environment}-${applicationName} \
@@ -52,7 +53,8 @@ class Deploy {
     private void deployCron() {
         ctx.echo "Updating cron ${applicationName} to ${environment} with image ${ecrPath}"
 
-        ctx.echo("""
+        ctx.echo(
+          """
              docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
                ${environment} \
                ${environment}-${applicationName} \
