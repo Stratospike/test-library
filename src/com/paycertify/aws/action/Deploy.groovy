@@ -37,33 +37,33 @@ class Deploy {
         ctx.echo "Deploying ${applicationName} to ${environment} with image ${ecrPath}"
 
         ctx.echo(
-          """
-             docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
-               ${environment} \
-               ${environment}-${applicationName} \
-               --region ${awsRegion} \
-               --access-key-id ${awsCredentials.accessKey} \
-               --secret-access-key ${awsCredentials.secretAccessKey} \
-               --no-deregister \
-               --image ${applicationName} ${ecrPath} \
-               --image datadog-agent datadog/agent:latest 
-          """)
+"""
+docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
+${environment} \
+${environment}-${applicationName} \
+--region ${awsRegion} \
+--access-key-id ${awsCredentials.accessKey} \
+--secret-access-key ${awsCredentials.secretAccessKey} \
+--no-deregister \
+--image ${applicationName} ${ecrPath} \
+--image datadog-agent datadog/agent:latest 
+""")
     }
 
     private void deployCron() {
         ctx.echo "Updating cron ${applicationName} to ${environment} with image ${ecrPath}"
 
         ctx.echo(
-          """
-             docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
-               ${environment} \
-               ${environment}-${applicationName} \
-               ${environment}-${applicationName}-job \
-               --region ${awsRegion} \
-               --access-key-id ${awsCredentials.accessKey} \
-               --secret-access-key ${awsCredentials.secretAccessKey} \
-               --no-deregister \
-               --image ${applicationName} ${ecrPath}
-          """)
+"""
+docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
+${environment} \
+${environment}-${applicationName} \
+${environment}-${applicationName}-job \
+--region ${awsRegion} \
+--access-key-id ${awsCredentials.accessKey} \
+--secret-access-key ${awsCredentials.secretAccessKey} \
+--no-deregister \
+--image ${applicationName} ${ecrPath}
+""")
     }
 }
