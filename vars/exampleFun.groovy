@@ -1,3 +1,6 @@
+import com.paycertify.aws.action.Deploy
+import com.paycertify.aws.model.AwsCredentials
+
 def call(params, String appRepoName = null, String appVersion = null) {
     String appName
 
@@ -10,8 +13,7 @@ def call(params, String appRepoName = null, String appVersion = null) {
         if (!appVersion) {
             appVersion = params.version
         }
-    }
-    else {
+    } else {
         appName = params
     }
 
@@ -28,17 +30,29 @@ def call(params, String appRepoName = null, String appVersion = null) {
     }
 
     def environment = getEnvironmentName()
-    def repoUrl = getDockerReposirotyUrl(environment)
+    def repoUrl = getDockerRepositoryUrl(environment)
     def awsRegion = getAwsRegion(environment)
     def shortCommit = appVersion[0..6]
 
-    if(CRON_APP.equalsIgnoreCase("true")){
+    def awsAccessKey = "${AWS_ACCESS_KEY_ID}"
+    def awsSecretAccessKey = "${AWS_SECRET_ACCESS_KEY}"
+
+    if (env.equalsIgnoreCase("production")) {
+        awsAccessKey = "${PROD_AWS_ACCESS_KEY_ID}"
+        awsSecretAccessKey = "${PROD_AWS_SECRET_ACCESS_KEY}"
+    }
+
+    def awsCredentials = new AwsCredentials(awsAccessKey, awsSecretAccessKey)
+    def ecrPath = "${repoUrl}/${appRepoName}"
+
+    boolean cron = CRON_APP.equalsIgnoreCase("true")
+    if (cron) {
         echo "Updating cron ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
-        updateCron("${repoUrl}/${appRepoName}", "${shortCommit}", "${environment}", "${appName}", "${awsRegion}")
     } else {
         echo "Deploying ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
-        deploy("${repoUrl}/${appRepoName}", "${shortCommit}", "${environment}", "${appName}", "${awsRegion}")
     }
+
+    new Deploy(awsRegion, awsCredentials, environment, appName, ecrPath, cron).execute()
 }
 
 def getEnvironmentName() {
@@ -46,7 +60,7 @@ def getEnvironmentName() {
     def branchName = scm.branches[0].name.split("/").last()
     def environment
 
-    switch(branchName) {
+    switch (branchName) {
         case "master":
             environment = "production"
             break
@@ -62,14 +76,13 @@ def getEnvironmentName() {
     }
 
     return environment
-
 }
 
-def getDockerReposirotyUrl(String environment) {
+def getDockerRepositoryUrl(String environment) {
 
     def repoUrl
 
-    switch(environment) {
+    switch (environment) {
         case "production":
             repoUrl = "670631891947.dkr.ecr.us-east-1.amazonaws.com"
             break
@@ -79,14 +92,13 @@ def getDockerReposirotyUrl(String environment) {
     }
 
     return repoUrl
-
 }
 
 def getAwsRegion(String environment) {
 
     def region
 
-    switch(environment) {
+    switch (environment) {
         case "production":
             region = "us-east-1"
             break
@@ -96,60 +108,4 @@ def getAwsRegion(String environment) {
     }
 
     return region
-
-}
-
-def deploy(String imgRepo, String imgVersion, String env, String appName, String awsRegion){
-
-    // AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY &
-    // PROD_AWS_ACCESS_KEY_ID & PROD_AWS_SECRET_ACCESS_KEY
-    // variables are provided by the Jenkins Environment block.
-
-    def awsAccessKey = "${AWS_ACCESS_KEY_ID}"
-    def awsSecretAccessKey = "${AWS_SECRET_ACCESS_KEY}"
-
-    if(env.equalsIgnoreCase("production")) {
-        awsAccessKey = "${PROD_AWS_ACCESS_KEY_ID}"
-        awsSecretAccessKey = "${PROD_AWS_SECRET_ACCESS_KEY}"
-    }
-
-    println("""
-     docker run fabfuel/ecs-deploy:1.11.0 ecs deploy \
-       ${env} \
-       ${env}-${appName} \
-       --region ${awsRegion} \
-       --access-key-id ${awsAccessKey} \
-       --secret-access-key ${awsSecretAccessKey} \
-       --no-deregister \
-       --image ${appName} ${imgRepo}:${imgVersion} \
-       --image datadog-agent datadog/agent:latest 
-  """)
-
-}
-
-def updateCron(String imgRepo, String imgVersion, String env, String appName, String awsRegion){
-
-    // AWS_ACCESS_KEY_ID & AWS_SECRET_ACCESS_KEY &
-    // PROD_AWS_ACCESS_KEY_ID & PROD_AWS_SECRET_ACCESS_KEY
-    // variables are provided by the Jenkins Environment block.
-
-    def awsAccessKey = "${AWS_ACCESS_KEY_ID}"
-    def awsSecretAccessKey = "${AWS_SECRET_ACCESS_KEY}"
-
-    if(env.equalsIgnoreCase("production")) {
-        awsAccessKey = "${PROD_AWS_ACCESS_KEY_ID}"
-        awsSecretAccessKey = "${PROD_AWS_SECRET_ACCESS_KEY}"
-    }
-
-    println("""
-     docker run fabfuel/ecs-deploy:1.11.0 ecs cron \
-       ${env} \
-       ${env}-${appName} \
-       ${env}-${appName}-job \
-       --region ${awsRegion} \
-       --access-key-id ${awsAccessKey} \
-       --secret-access-key ${awsSecretAccessKey} \
-       --no-deregister \
-       --image ${appName} ${imgRepo}:${imgVersion}
-  """)
 }
