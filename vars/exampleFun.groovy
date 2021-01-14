@@ -52,7 +52,8 @@ def call(params, String appRepoName = null, String appVersion = null) {
         echo "Deploying ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
     }
 
-    new Deploy(awsRegion, awsCredentials, environment, appName, ecrPath, cron).execute()
+    Deploy deploy = new Deploy(awsRegion, awsCredentials, environment, appName, ecrPath, cron)
+    deploy.execute()
 }
 
 def getEnvironmentName() {
