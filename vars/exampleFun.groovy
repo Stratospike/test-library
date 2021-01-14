@@ -37,7 +37,7 @@ def call(params, String appRepoName = null, String appVersion = null) {
     def awsAccessKey = "${AWS_ACCESS_KEY_ID}"
     def awsSecretAccessKey = "${AWS_SECRET_ACCESS_KEY}"
 
-    if (env.equalsIgnoreCase("production")) {
+    if (environment.equalsIgnoreCase("production")) {
         awsAccessKey = "${PROD_AWS_ACCESS_KEY_ID}"
         awsSecretAccessKey = "${PROD_AWS_SECRET_ACCESS_KEY}"
     }
@@ -45,8 +45,7 @@ def call(params, String appRepoName = null, String appVersion = null) {
     def awsCredentials = new AwsCredentials(awsAccessKey, awsSecretAccessKey)
     def ecrPath = "${repoUrl}/${appRepoName}"
 
-    String cronApp = CRON_APP
-    boolean cron = cronApp.equalsIgnoreCase("true")
+    boolean cron = CRON_APP.equalsIgnoreCase("true")
     if (cron) {
         echo "Updating cron ${appName} to ${environment} with image ${repoUrl}/${appRepoName}:${shortCommit}"
     } else {
