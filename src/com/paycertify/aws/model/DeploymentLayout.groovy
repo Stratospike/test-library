@@ -1,48 +1,53 @@
 package com.paycertify.aws.model
 
 class DeploymentLayout {
-    private String fullBranchName
+    private final AwsAccount awsAccount
+    private final String environmentName
 
     DeploymentLayout(String fullBranchName) {
-        this.fullBranchName = fullBranchName
-    }
+        final String lastBranchName = fullBranchName.split("/").last()
 
-    String getEnvironmentName() {
-        def branchName = fullBranchName.split("/").last()
-
-        switch (branchName) {
+        switch (lastBranchName) {
             case "master":
-                return "production"
             case "main":
-                return "production"
-            case "staging":
-                return "staging"
+            case "production":
+                this.awsAccount = AwsAccount.PRODUCTION
+                this.environmentName = "production"
+                break;
+            case "sandbox":
+                this.awsAccount = AwsAccount.PRODUCTION
+                this.environmentName = "sandbox"
+                break;
             default:
-                return branchName
+                this.awsAccount = fullBranchName.startsWith("env/") ? AwsAccount.PRE_PROD : AwsAccount.NON_PROD
+                this.environmentName = lastBranchName
+                break;
         }
     }
 
-    String getDockerRepositoryUrl() {
-        String environment = getEnvironmentName()
-
-        switch (environment) {
-            case "production":
-                return "670631891947.dkr.ecr.us-east-1.amazonaws.com"
-            default:
-                return "670631891947.dkr.ecr.us-east-1.amazonaws.com"
-        }
+    AwsAccount getAwsAccount() {
+        return awsAccount
     }
 
     String getAwsRegion() {
-        String environment = getEnvironmentName()
-
-        def region
-
-        switch (environment) {
+        switch (environmentName) {
             case "production":
                 return "us-east-1"
             default:
                 return "us-east-2"
+        }
+    }
+
+    String getEnvironmentName() {
+        return environmentName
+    }
+
+    String getDockerRepositoryUrl() {
+        switch (environmentName) {
+            case "production":
+                return "670631891947.dkr.ecr.us-east-1.amazonaws.com"
+            default:
+                return "670631891947.dkr.ecr.us-east-1.amazonaws.com"
         }
     }
 }

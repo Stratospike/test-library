@@ -1,4 +1,5 @@
 import com.paycertify.aws.action.Deploy
+import com.paycertify.aws.model.AwsAccount
 import com.paycertify.aws.model.AwsCredentials
 import com.paycertify.aws.model.DeploymentLayout
 
@@ -9,10 +10,10 @@ def call(params, String appRepoName = null, String appVersion = null) {
     final String environment = layout.getEnvironmentName()
     final String repoUrl = layout.getDockerRepositoryUrl()
     final String awsRegion = layout.getAwsRegion()
+    final AwsCredentials awsCredentials = getAwsCredentials(layout)
 
     final String shortCommit = version[0..6]
     final String ecrPath = "${repoUrl}/${repoName}:${shortCommit}"
-    final AwsCredentials awsCredentials = getAwsCredentials(environment)
 
     boolean cron = CRON_APP.equalsIgnoreCase("true")
 
@@ -51,10 +52,12 @@ private List parseParameters(params, String repoName, String version) {
     [applicationName, repoName, version]
 }
 
-private AwsCredentials getAwsCredentials(String environment) {
-    if (environment.equalsIgnoreCase("production")) {
-        return new AwsCredentials("${PROD_AWS_ACCESS_KEY_ID}", "${PROD_AWS_SECRET_ACCESS_KEY}")
-    } else {
-        return new AwsCredentials("${AWS_ACCESS_KEY_ID}", "${AWS_SECRET_ACCESS_KEY}")
+private AwsCredentials getAwsCredentials(DeploymentLayout layout) {
+    switch (layout.getAwsAccount()) {
+        case AwsAccount.PRODUCTION:
+            return new AwsCredentials("${PROD_AWS_ACCESS_KEY_ID}", "${PROD_AWS_SECRET_ACCESS_KEY}")
+        // case AwsAccount.PRE_PROD:
+        default:
+            return new AwsCredentials("${AWS_ACCESS_KEY_ID}", "${AWS_SECRET_ACCESS_KEY}")
     }
 }
