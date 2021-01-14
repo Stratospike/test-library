@@ -54,10 +54,13 @@ private List parseParameters(params, String repoName, String version) {
 
 private AwsCredentials getAwsCredentials(DeploymentLayout layout) {
     switch (layout.getAwsAccount()) {
-        case AwsAccount.PRODUCTION:
-            return new AwsCredentials("${PROD_AWS_ACCESS_KEY_ID}", "${PROD_AWS_SECRET_ACCESS_KEY}")
-        // case AwsAccount.PRE_PROD:
-        default:
+        case AwsAccount.NONPROD
             return new AwsCredentials("${AWS_ACCESS_KEY_ID}", "${AWS_SECRET_ACCESS_KEY}")
+        case AwsAccount.PREPROD:
+            return new AwsCredentials("${PREPROD_AWS_ACCESS_KEY_ID}", "${PREPROD_AWS_SECRET_ACCESS_KEY}")
+        case AwsAccount.PROD:
+            return new AwsCredentials("${PROD_AWS_ACCESS_KEY_ID}", "${PROD_AWS_SECRET_ACCESS_KEY}")
+        default:
+            throw new IllegalStateException("Unknown AWS Account")
     }
 }

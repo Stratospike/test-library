@@ -11,15 +11,15 @@ class DeploymentLayout {
             case "master":
             case "main":
             case "production":
-                this.awsAccount = AwsAccount.PRODUCTION
+                this.awsAccount = AwsAccount.PROD
                 this.environmentName = "production"
                 break;
             case "sandbox":
-                this.awsAccount = AwsAccount.PRODUCTION
+                this.awsAccount = AwsAccount.PROD
                 this.environmentName = "sandbox"
                 break;
             default:
-                this.awsAccount = fullBranchName.startsWith("env/") ? AwsAccount.PRE_PROD : AwsAccount.NON_PROD
+                this.awsAccount = fullBranchName.startsWith("env/") ? AwsAccount.PREPROD : AwsAccount.NONPROD
                 this.environmentName = lastBranchName
                 break;
         }
