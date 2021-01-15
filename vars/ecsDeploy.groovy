@@ -21,7 +21,7 @@ def call(params, String appRepoName = null, String appVersion = null) {
 
 private List parseParameters(params, String repoName, String version) {
     String applicationName
-    boolean cron = false
+    boolean cron = null
 
     if (params instanceof Map) {
         applicationName = params.applicationName
